@@ -1,7 +1,12 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
 import json
+
+os.environ.setdefault("CORPUS_MODE", "small")
+os.environ.setdefault("RAG_USE_QDRANT", "false")
+
+from app.main import app
 
 client = TestClient(app)
 
@@ -35,7 +40,6 @@ def test_records_and_provenance_security():
         # Verify provenance sanitization
         prov = record.get("provenance", {})
         source_path = prov.get("source_path", "")
-        # Should not have C:\\, d:\\, or output/FINAL_EVALUATION/
         assert ":" not in source_path
         assert "output/FINAL_EVALUATION" not in source_path
         assert source_path.startswith("Redacted /")
@@ -44,7 +48,6 @@ def test_entity_lookup():
     response = client.get("/api/entities/3189/records")
     assert response.status_code == 200
     data = response.json()
-    # Entity 3189 should definitely have records since it's an account
     assert data["total"] > 0
 
 def test_network():
@@ -53,7 +56,6 @@ def test_network():
     data = response.json()
     assert "nodes" in data
     assert "edges" in data
-    # At least some nodes and edges should be derived
     assert len(data["nodes"]) > 0
 
 def test_ai_query():
@@ -61,11 +63,40 @@ def test_ai_query():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
-    # Depending on whether GROK_API_KEY is present, it could be a fallback or an LLM answer
-    # but it will always return llm_response object
+    # LLM response - backward compat
     assert "llm_response" in data
     llm = data["llm_response"]
     assert "answer" in llm
     assert "citations" in llm
     assert "evidence_basis" in llm
     assert "confidence" in llm
+    # New rich fields
+    assert "retrieval" in data
+    assert "evidence" in data
+    assert "entities" in data
+    assert "network_links" in data
+    assert "timing" in data
+
+def test_ai_query_exact_id():
+    """Exact record ID retrieval."""
+    response = client.post("/api/ai/query", json={
+        "query": "CBS-S01-00001",
+        "scenario_id": "S01"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    record_ids = [r.get("record_id", "") for r in data.get("results", [])]
+    assert "CBS-S01-00001" in record_ids
+
+def test_ai_query_with_debug():
+    """Debug mode returns query_understanding."""
+    response = client.post("/api/ai/query", json={
+        "query": "payment CBS-S01-00001",
+        "scenario_id": "S01",
+        "debug": True
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "debug" in data
+    assert "query_understanding" in data["debug"]

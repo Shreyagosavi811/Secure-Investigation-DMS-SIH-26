@@ -1,8 +1,25 @@
 from typing import List, Dict, Any, Optional
-from sentence_transformers import SentenceTransformer
+import random
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
+
 from .config import VectorStoreConfig
 from .qdrant_client import QdrantEvidenceClient
 from rag.investigation.context import InvestigationContext
+
+class MockEncoder:
+    def __init__(self, dim=1024):
+        self.dim = dim
+    def get_sentence_embedding_dimension(self):
+        return self.dim
+    def encode(self, texts, convert_to_numpy=True):
+        import numpy as np
+        if isinstance(texts, str):
+            return np.zeros(self.dim)
+        return np.zeros((len(texts), self.dim))
 
 RERANK_WEIGHTS = {
     "semantic_base": 1.0,
@@ -13,8 +30,12 @@ RERANK_WEIGHTS = {
 class RetrievalAPI:
     def __init__(self, config: Optional[VectorStoreConfig] = None):
         self.config = config or VectorStoreConfig()
-        # Initialize model (this will load it onto the specified device)
-        self.model = SentenceTransformer(self.config.embedding_model, device=self.config.embedding_device)
+        if SentenceTransformer is not None:
+            self.model = SentenceTransformer(self.config.embedding_model, device=self.config.embedding_device)
+        else:
+            print("WARNING: sentence_transformers missing. Using MockEncoder for Qdrant (Disk space limitation).")
+            self.model = MockEncoder()
+            
         self.qdrant_client = QdrantEvidenceClient(
             path=self.config.qdrant_path,
             collection_name=self.config.qdrant_collection
@@ -43,6 +64,21 @@ class RetrievalAPI:
         # Clean up double spaces left by removal
         semantic_text = re.sub(r'\s+', ' ', semantic_text)
         return extracted, semantic_text
+
+    def _normalize_identifiers(self, identifiers: List[str]) -> List[str]:
+        """
+        Expands exact identifiers with normalized variants (e.g. phone numbers).
+        """
+        import re
+        expanded = list(identifiers)
+        for eid in identifiers:
+            # Phone number normalization
+            if re.match(r'^(\+91-?|91|PHONE-)?\d{10}$', eid):
+                core_num = eid[-10:]
+                for variant in [core_num, f"91{core_num}", f"+91-{core_num}", f"PHONE-{core_num}"]:
+                    if variant not in expanded:
+                        expanded.append(variant)
+        return expanded
 
     def _extract_entity_refs(self, results: List[Dict[str, Any]], max_entities: int = 20) -> List[str]:
         entities = []
@@ -81,7 +117,15 @@ class RetrievalAPI:
         exact_ids = []
 
         if retrieval_mode == "hybrid":
-            exact_ids, semantic_text = self._extract_identifiers(query)
+            if investigation_context and investigation_context.known_entity_refs:
+                exact_ids = investigation_context.known_entity_refs
+                # Remove exact IDs from the semantic query string
+                for eid in exact_ids:
+                    semantic_text = semantic_text.replace(eid, "").strip()
+                import re
+                semantic_text = re.sub(r'\s+', ' ', semantic_text)
+            else:
+                exact_ids, semantic_text = self._extract_identifiers(query)
 
         # Build Context Filters (Phase 9B supports source_type_filters and case_ids)
         must_conditions = []
@@ -114,8 +158,9 @@ class RetrievalAPI:
         # 2. Exact Match Query (Hybrid Mode)
         exact_results = []
         if retrieval_mode == "hybrid" and exact_ids:
+            expanded_exact_ids = self._normalize_identifiers(exact_ids)
             exact_results = self.qdrant_client.search_exact(
-                identifiers=exact_ids,
+                identifiers=expanded_exact_ids,
                 top_k=top_k * 2,
                 filters=filters,
                 investigation_context=investigation_context

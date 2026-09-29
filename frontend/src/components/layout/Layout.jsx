@@ -5,47 +5,27 @@ import {
   Search, 
   Menu, 
   LogOut, 
-  Globe, 
-  FilePlus, 
   Home, 
-  Fingerprint, 
-  Users, 
   Settings, 
-  LayoutTemplate, 
-  ExternalLink, 
   FileText, 
   X, 
   ChevronRight,
   Pin,
   PinOff,
-  FolderGit2,
-  Sparkles,
-  Plus,
-  Link2,
-  Activity,
-  Layers,
-  ChevronDown,
-  Check
+  ClipboardList,
+  BarChart
 } from 'lucide-react';
 
 export function TopBar() {
   const { 
     currentUser, 
-    setUserRole, 
     logout, 
     toggleMobileMenu, 
-    searchGlobal, 
-    showToast, 
-    globalSearchResults,
-    isSearchOpen, 
-    setIsSearchOpen, 
     navigate,
-    openModal,
-    isDarkMode,
-    toggleDarkMode,
-    selectEntity,
-    selectEvidence
+    globalSearchQuery,
+    setGlobalSearchQuery
   } = useInvestigation();
+
 
   return (
       <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 select-none font-sans shadow-sm">
@@ -68,9 +48,9 @@ export function TopBar() {
           </div>
           <div>
             <div className="font-bold text-slate-900 text-sm tracking-tight flex items-center space-x-2">
-              <span>CRIMINAL INVESTIGATION PLATFORM</span>
+              <span>OMNIGUARD DMS</span>
             </div>
-            <p className="text-[11px] text-slate-500 hidden sm:block">CID Network Telemetry & Case Analysis</p>
+            <p className="text-[11px] text-slate-500 hidden sm:block">Secure Evidence Lifecycle & Analysis</p>
           </div>
         </div>
       </div>
@@ -81,92 +61,21 @@ export function TopBar() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
           <input 
             type="text" 
-            placeholder="Search by FIR number, suspect name, phone, plate, or evidence..." 
+            placeholder="Search documents, cases, keywords..." 
             className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm transition-all"
-            onChange={(e) => searchGlobal(e.target.value)}
-            onFocus={() => setIsSearchOpen(true)}
+            value={globalSearchQuery}
+            onChange={(e) => setGlobalSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && globalSearchQuery.trim()) {
+                navigate('search');
+              }
+            }}
           />
         </div>
-
-        {/* Global Search Results Dropdown */}
-        {isSearchOpen && globalSearchResults && (
-          <div className="absolute top-12 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-50 space-y-1 max-h-80 overflow-y-auto">
-            <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Search Records</span>
-              <button onClick={() => setIsSearchOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {globalSearchResults.length === 0 ? (
-              <div className="text-slate-400 text-center py-4 text-xs">No matching records found</div>
-            ) : (
-              globalSearchResults.map((res, i) => (
-                <div 
-                  key={i}
-                  onClick={() => {
-                    if (res.type === 'CASE' && res.caseId) {
-                      navigate('overview', { caseId: res.caseId });
-                    } else if (res.type === 'EVIDENCE' && res.evidenceId) {
-                      selectEvidence(res.evidenceId);
-                      navigate('analysis', { tab: 'evidence' });
-                    } else if (res.type === 'ENTITY' && res.originalId) {
-                      selectEntity(res.originalId);
-                      navigate('analysis', { tab: 'network' });
-                    }
-                    setIsSearchOpen(false);
-                    showToast(`Opened ${res.title}`, 'info');
-                  }}
-                  className="p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer flex items-center justify-between transition-colors"
-                >
-                  <div>
-                    <div className="font-semibold text-slate-900 text-xs">{res.title}</div>
-                    <div className="text-[11px] text-slate-500">{res.subtitle}</div>
-                  </div>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 uppercase">
-                    {res.type}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        )}
       </div>
 
       {/* Right: Actions & Role Switching */}
       <div className="flex items-center space-x-2.5">
-        <button 
-          onClick={() => openModal('register-fir')}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center space-x-1.5"
-          title="Register New FIR Record"
-        >
-          <FilePlus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">New FIR</span>
-        </button>
-
-        {/* Role Selector */}
-        <div className="hidden md:flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-          {['Admin', 'Investigator', 'Analyst'].map(role => {
-            const isSelected = currentUser && currentUser.role === role;
-            return (
-              <button
-                key={role}
-                onClick={() => {
-                  setUserRole(role);
-                  showToast(`Switched active profile to ${role}`, 'info');
-                }}
-                className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                  isSelected 
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200' 
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                }`}
-              >
-                {role}
-              </button>
-            );
-          })}
-        </div>
-
         {/* User Profile & Logout */}
         <div className="flex items-center space-x-1.5 pl-1">
           <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-sm" title={`${currentUser.name} (${currentUser.role})`}>
@@ -192,16 +101,7 @@ export function Sidebar() {
     currentUser, 
     navigate, 
     isMobileMenuOpen, 
-    toggleMobileMenu, 
-    currentCanvas, 
-    activeCaseId,
-    setActiveCaseId,
-    cases,
-    evidenceList,
-    suspectDossiers,
-    openModal,
-    autoLinkCanvasWithAI,
-    showToast 
+    toggleMobileMenu
   } = useInvestigation();
 
   const [isHovered, setIsHovered] = useState(false);
@@ -213,50 +113,35 @@ export function Sidebar() {
   const navItems = [
     { 
       id: 'dashboard', 
-      label: 'Case Files & Hub', 
-      icon: Home,
-      badge: cases?.length ? `${cases.length}` : '6'
+      label: 'Document Management', 
+      icon: Home
     },
     { 
-      id: 'fir', 
-      label: 'Statutory FIR Repository', 
-      icon: FileText,
-      badge: 'FIR'
+      id: 'search', 
+      label: 'Global Search', 
+      icon: Search
     },
     { 
-      id: 'evidence', 
-      label: 'Evidence Vault & Forensics', 
-      icon: FolderGit2,
-      badge: evidenceList?.length ? `${evidenceList.length}` : '8'
+      id: 'document_viewer', 
+      label: 'Document Viewer', 
+      icon: FileText
     },
     { 
-      id: 'tracker', 
-      label: 'Incident Map & Heatmap', 
-      icon: Globe,
-      isLive: true
+      id: 'board', 
+      label: 'Evidence Board', 
+      icon: ClipboardList
     },
     { 
-      id: 'dossiers', 
-      label: 'Suspect Dossiers & AFIS', 
-      icon: Fingerprint,
-      badge: suspectDossiers?.length ? `${suspectDossiers.length}` : '9'
+      id: 'audit', 
+      label: 'Security Audit Trail', 
+      icon: Shield,
+      adminOnly: true
     },
     { 
-      id: 'overview', 
-      label: 'Investigation Workspace', 
-      icon: Search,
-      badge: 'AI'
-    },
-    { 
-      id: 'users', 
-      label: 'Officer Access & Logs', 
-      icon: Users, 
-      adminOnly: true 
-    },
-    { 
-      id: 'settings', 
-      label: 'System Settings', 
-      icon: Settings 
+      id: 'analytics', 
+      label: 'System Analytics', 
+      icon: BarChart,
+      adminOnly: true
     }
   ];
 
@@ -390,133 +275,8 @@ export function Sidebar() {
           </nav>
         </div>
 
-        {/* Bottom Section: Corkboard Widget & Officer Profile */}
+        {/* Bottom Section: Officer Profile */}
         <div className="space-y-3 pt-3 border-t border-slate-200">
-          {/* Corkboard Workspace Widget */}
-          {showFull ? (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5 shadow-sm">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="p-1 rounded-md bg-blue-50 border border-blue-100 text-blue-600">
-                    <LayoutTemplate className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-xs font-semibold text-slate-800 tracking-tight">
-                    Corkboard Studio
-                  </span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="flex items-center space-x-1 text-[10px] font-semibold bg-emerald-50 border border-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>LIVE</span>
-                  </span>
-                  <span className="text-[10px] font-medium text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
-                    {currentCanvas?.id || 'CAN-001'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Case Selector & Telemetry */}
-              <div className="bg-white border border-slate-200 rounded-lg p-2 space-y-2 shadow-sm">
-                <div className="flex items-center justify-between gap-1.5 text-xs">
-                  <div className="flex items-center space-x-1.5 min-w-0">
-                    <span className="text-slate-500 text-[11px] font-medium">Case:</span>
-                    <select
-                      value={activeCaseId}
-                      onChange={(e) => {
-                        setActiveCaseId(e.target.value);
-                        showToast(`Switched Corkboard focus to ${e.target.value}`, 'info');
-                      }}
-                      className="bg-white border border-slate-200 text-slate-800 font-semibold text-xs rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                    >
-                      {(cases || [{ id: 'FIR-104', title: 'Narcotics Hawala' }]).map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.id}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <span className="text-[11px] text-blue-600 font-medium bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded shrink-0">
-                    {(currentCanvas?.connections || []).length} Links
-                  </span>
-                </div>
-
-                {/* Stats Breakdown */}
-                <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-100 text-center">
-                  <div className="bg-slate-50 rounded py-1 px-0.5 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-800">
-                      {(currentCanvas?.objects || []).filter(o => o.type === 'entity').length}
-                    </div>
-                    <div className="text-[9px] font-medium text-slate-500">Targets</div>
-                  </div>
-                  <div className="bg-slate-50 rounded py-1 px-0.5 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-800">
-                      {(currentCanvas?.objects || []).filter(o => o.type === 'evidence').length}
-                    </div>
-                    <div className="text-[9px] font-medium text-slate-500">Exhibits</div>
-                  </div>
-                  <div className="bg-slate-50 rounded py-1 px-0.5 border border-slate-100">
-                    <div className="text-xs font-semibold text-slate-800">
-                      {(currentCanvas?.objects || []).filter(o => o.type === 'note' || !o.type).length}
-                    </div>
-                    <div className="text-[9px] font-medium text-slate-500">Leads</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fast Action Buttons */}
-              <div className="grid grid-cols-2 gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => autoLinkCanvasWithAI()}
-                  className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg font-medium flex items-center justify-center space-x-1 transition-colors cursor-pointer"
-                  title="Use AI to auto-connect related suspects and evidence"
-                >
-                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                  <span>AI Link</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => openModal('add-custom-canvas-object')}
-                  className="py-1.5 px-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg font-medium flex items-center justify-center space-x-1 transition-colors cursor-pointer shadow-sm"
-                  title="Pin custom card or lead to board"
-                >
-                  <Plus className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                  <span>Add Lead</span>
-                </button>
-              </div>
-
-              {/* Open Studio Action Button */}
-              <button 
-                onClick={() => {
-                  navigate('canvas');
-                  if (mobile) toggleMobileMenu();
-                }}
-                className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors shadow-sm cursor-pointer"
-              >
-                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                <span>Launch Canvas</span>
-              </button>
-            </div>
-          ) : (
-            <div className="flex justify-center relative">
-              <button 
-                onClick={() => navigate('canvas')}
-                className="w-10 h-10 rounded-xl bg-slate-900 hover:bg-blue-600 text-white flex items-center justify-center transition-all shadow-sm relative group"
-                title={`Corkboard Studio (${activeCaseId}) - ${(currentCanvas?.objects || []).length} pins`}
-              >
-                <LayoutTemplate className="w-4 h-4 text-blue-400 group-hover:text-white transition-colors" />
-                {(currentCanvas?.objects || []).length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-white shadow-sm">
-                    {(currentCanvas?.objects || []).length}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* Officer Identification Footer */}
           <div className={`border border-slate-200 bg-slate-50 rounded-xl transition-all shadow-sm ${
             showFull ? 'p-2.5' : 'p-2 flex justify-center'
           }`}>
@@ -537,7 +297,7 @@ export function Sidebar() {
                     <div className="font-semibold text-slate-900 text-xs truncate">{currentUser.name}</div>
                     <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{currentUser.role || 'Officer'}</span>
                   </div>
-                  <div className="text-[10px] text-slate-500 truncate">{currentUser.department || 'CID Special Crime Branch'}</div>
+                  <div className="text-[10px] text-slate-500 truncate">Document Management</div>
                 </div>
               )}
             </div>
@@ -576,18 +336,13 @@ export function Sidebar() {
 export function Breadcrumbs() {
   const { currentPage, activeCaseId, activeAnalysisTab, navigate } = useInvestigation();
 
-  const getPageTitle = (page) => {
+    const getPageTitle = (page) => {
     switch (page) {
-      case 'dashboard': return 'Case Files & Hub';
-      case 'fir': return 'Statutory FIR Repository';
-      case 'evidence': return 'Evidence Vault & Digital Forensics Hub';
-      case 'tracker': return 'Incident Map & Heatmap';
-      case 'dossiers': return 'Suspect Dossiers & AFIS';
-      case 'overview': return `Case ${activeCaseId} Overview`;
-      case 'analysis': return `Case Analysis (${activeAnalysisTab.charAt(0).toUpperCase() + activeAnalysisTab.slice(1)})`;
-      case 'canvas': return 'Tactical Corkboard';
-      case 'users': return 'Officer Access & Logs';
-      case 'settings': return 'System Settings';
+      case 'search': return 'Global Search';
+      case 'dashboard': return 'Document Management';
+      case 'document_viewer': return 'Document Viewer';
+      case 'board': return 'Evidence Board';
+      case 'audit': return 'Security Audit Trail';
       default: return page;
     }
   };

@@ -94,7 +94,13 @@ class RetrievalService:
                 
         return score, list(matched_terms)
 
-    def retrieve(self, query: str, top_k: int = 5, scenario_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    def retrieve(
+        self, 
+        query: str, 
+        top_k: int = 5, 
+        scenario_id: Optional[str] = None,
+        authorized_case_ids: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         if not query or not query.strip():
             return []
 
@@ -103,6 +109,9 @@ class RetrievalService:
 
         if scenario_id:
             records = [r for r in records if r.get("scenario_instance_id") == scenario_id]
+
+        if authorized_case_ids is not None:
+            records = [r for r in records if any(c in authorized_case_ids for c in r.get("case_refs", []))]
 
         scored_results = []
         for record in records:
@@ -121,6 +130,7 @@ class RetrievalService:
                     "normalized_text": record.get("normalized_text", ""),
                     "entity_refs": record.get("entity_refs", []),
                     "location_refs": record.get("location_refs", []),
+                    "case_refs": record.get("case_refs", []),
                     "relevance_score": score,
                     "matched_terms": matched_terms
                 })

@@ -60,3 +60,22 @@ investigation_dataset_engine/scratch/
 !investigation_dataset_engine/output/RAG_BENCHMARK/
 !investigation_dataset_engine/output/RAG_EVALUATION/
 !investigation_dataset_engine/output/REPORTS/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Local scratch and diagnostic files
+e2e_accept.py
+test_script.py
+db_test.py
+env_dump.txt
+backend/diagnostic_output.txt
+backend/tests/diagnostic_output.txt
+backend/tests/eval_*.json
+backend/tests/rag_evaluation_report.json
+backend/RAG_DEBUG_REPORT.md
+
+# Local file storage
+backend/storage/

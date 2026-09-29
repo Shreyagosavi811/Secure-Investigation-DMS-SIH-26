@@ -20,6 +20,9 @@ ALLOWED_SOURCE_TYPES = {
 class InvestigationContext(BaseModel):
     investigation_id: str
     case_ids: List[str] = Field(default_factory=list)
+    # scenario_ids: hard isolation constraint — always applied as MUST, never SHOULD.
+    # Identifies which scenario instance(s) to search within.
+    scenario_ids: List[str] = Field(default_factory=list)
     entity_ids: List[str] = Field(default_factory=list)
     person_ids: List[str] = Field(default_factory=list)
     phone_ids: List[str] = Field(default_factory=list)
@@ -27,6 +30,7 @@ class InvestigationContext(BaseModel):
     account_ids: List[str] = Field(default_factory=list)
     location_ids: List[str] = Field(default_factory=list)
     known_entity_refs: List[str] = Field(default_factory=list)
+    authorized_case_ids: List[str] = Field(default_factory=list)
     
     time_start: Optional[datetime] = None
     time_end: Optional[datetime] = None
@@ -34,9 +38,9 @@ class InvestigationContext(BaseModel):
     source_type_filters: List[str] = Field(default_factory=list)
     investigator_query: str = ""
     
-    @field_validator("case_ids", "entity_ids", "person_ids", "phone_ids", 
-                     "vehicle_ids", "account_ids", "location_ids", 
-                     "known_entity_refs", "source_type_filters", mode="before")
+    @field_validator("case_ids", "scenario_ids", "entity_ids", "person_ids",
+                     "vehicle_ids", "account_ids", "location_ids",
+                     "known_entity_refs", "source_type_filters", "authorized_case_ids", mode="before")
     @classmethod
     def _normalize_list(cls, v: Any) -> List[str]:
         if not v:
@@ -74,6 +78,7 @@ class InvestigationContext(BaseModel):
         data = {
             "investigation_id": self.investigation_id,
             "case_ids": sorted(self.case_ids),
+            "scenario_ids": sorted(self.scenario_ids),
             "entity_ids": sorted(self.entity_ids),
             "person_ids": sorted(self.person_ids),
             "phone_ids": sorted(self.phone_ids),
@@ -81,6 +86,7 @@ class InvestigationContext(BaseModel):
             "account_ids": sorted(self.account_ids),
             "location_ids": sorted(self.location_ids),
             "known_entity_refs": sorted(self.known_entity_refs),
+            "authorized_case_ids": sorted(self.authorized_case_ids),
             "time_start": dt_to_str(self.time_start),
             "time_end": dt_to_str(self.time_end),
             "source_type_filters": sorted(self.source_type_filters),

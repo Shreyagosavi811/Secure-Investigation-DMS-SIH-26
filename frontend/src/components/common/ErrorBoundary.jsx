@@ -32,7 +32,7 @@ export class ErrorBoundary extends React.Component {
               </div>
               <div>
                 <h2 className="text-base font-bold text-white">Application Exception Intercepted</h2>
-                <p className="text-[11px] text-slate-400">SIH26189 Runtime Error Shield</p>
+                <p className="text-[11px] text-slate-400">OmniGuard Runtime Error Shield</p>
               </div>
             </div>
 

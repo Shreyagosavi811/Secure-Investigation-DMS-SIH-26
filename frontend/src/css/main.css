@@ -345,12 +345,22 @@ button:disabled, [role="button"]:disabled {
     background: white !important;
     color: black !important;
   }
-  header, aside, .floating-ai-window, button, nav {
+  header, nav, aside, .floating-ai-window, .btn-primary, .btn-secondary, button {
     display: none !important;
   }
   main {
-    padding: 0 !important;
-    margin: 0 !important;
     width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .human-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    page-break-inside: avoid;
+  }
+  @page {
+    margin: 2cm;
   }
 }
+
