@@ -1,11 +1,5 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/SIH_2026-Project_SIH26190-orange?style=for-the-badge" alt="SIH 2026" />
-  <img src="https://img.shields.io/badge/Status-Hackathon_Ready-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Tech-React_Flow%20%7C%20FastAPI-blue?style=for-the-badge" alt="Tech Stack" />
   
-  <br />
-  <br />
-
   <h1>🛡️ OmniGuard DMS</h1>
   <p><b>Secure Digital Document Management System for Law Enforcement & Intelligence</b></p>
   <p><i>Developed for the Ministry of Home Affairs | Smart India Hackathon 2026 (Problem Statement: SIH26190)</i></p>
@@ -20,7 +14,7 @@ When critical intelligence (FIRs, witness testimonies, forensic logs) is uploade
 
 ---
 
-## 🚀 Key Innovations (Our Hackathon Edge)
+## 🚀 Key Innovations
 
 Generic document management systems simply upload files to a cloud. OmniGuard is built to solve the specific workflow pain points of real investigative units:
 
@@ -43,16 +37,21 @@ Top-level administrators receive instant overviews of total active cases, docume
 
 OmniGuard is designed as a **local-first, on-premise capable** system to ensure 100% uptime and data sovereignty for sensitive government data, even if internet connectivity drops.
 
-**Frontend (Client)**
-- **React 18 + Vite:** Lightning-fast rendering.
-- **Tailwind CSS:** Custom "Human Touch" glassmorphism design system.
-- **React Flow (`@xyflow/react`):** Advanced physics-based node graph engine.
+### Frontend Application
+| Technology | Purpose |
+| :--- | :--- |
+| **React 18 + Vite** | Provides lightning-fast rendering and an optimized build pipeline. |
+| **Tailwind CSS** | Implements a custom "Human Touch" glassmorphism design system for a premium UI. |
+| **React Flow** | Powers the advanced physics-based node graph engine for the Interactive Evidence Board. |
+| **Recharts** | Delivers real-time, interactive security analytics dashboards for administrators. |
 
-**Backend (Server & Security)**
-- **FastAPI (Python):** High-performance, asynchronous REST APIs capable of handling production-scale throughput.
-- **SQLite + SQLAlchemy ORM:** Persistent tracking of RBAC and chronological audit logs (instantly swappable to PostgreSQL for enterprise scaling).
-- **Qdrant Vector DB:** For scalable, lightning-fast semantic search across massive case files.
-- **Cryptography:** Native `hashlib` SHA-256 for evidentiary integrity.
+### Backend Server & Security
+| Technology | Purpose |
+| :--- | :--- |
+| **FastAPI (Python)** | High-performance, asynchronous REST APIs capable of handling production-scale throughput. |
+| **SQLite + SQLAlchemy** | Persistent tracking of RBAC and chronological audit logs (instantly swappable to PostgreSQL). |
+| **Qdrant Vector DB** | Facilitates scalable, lightning-fast semantic AI search across massive case files. |
+| **Cryptography** | Utilizes native `hashlib` SHA-256 for real-time evidentiary integrity and tamper detection. |
 
 ---
 
@@ -97,5 +96,5 @@ Login using the following simulated demo accounts to test absolute permission is
 ---
 
 <div align="center">
-  <p><b>Built with ❤️ for the Smart India Hackathon 2026</b></p>
+  <p><b>OmniGuard DMS &copy; 2026</b></p>
 </div>
